@@ -1,0 +1,46 @@
+---
+- hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    #define the vcenter auth_info 
+    vcenter_hostname: "<vcenter_ip>"
+    vcenter_username: "<vcenter_login_user>"
+    vcenter_password: "<vcenter_login_pw>"
+    datacenter: "SD-WAN_Datacenter"
+    esxi_hostname: "<esxi_host_ip>"
+    datastore: "RAID10_HDD (1)"
+
+  tasks:
+  - name: deploy vedge and vbond
+    vmware_deploy_ovf:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+      datacenter: "{{ datacenter }}"
+      datastore: "{{ datastore }}"
+      name: "{{ item }}"
+      networks: 
+        "GigabitEthernet1": "192.168.0.0/24"
+        "GigabitEthernet2": "site_13"
+        "GigabitEthernet3": "site_13"
+      power_on: yes
+
+       #upload ova file on the ansible_server
+      ovf: /<ova_file_path>/csr1000v-ucmk9.16.12.2r.ova
+      
+      # define the initial parameters of ova
+      properties:
+        com.cisco.csr1000v.login-username.1: "admin"
+        com.cisco.csr1000v.login-password.1: "admin"
+        com.cisco.csr1000v.mgmt-interface.1: "GigabitEthernet1"
+        com.cisco.csr1000v.mgmt-ipv4-addr.1: "dhcp"
+        com.cisco.csr1000v.mgmt-ipv4-gateway.1: "192.168.0.254"
+    with_items:
+      - "test_cedge_bzhang_001"
+      - "test_cedge_bzhang_002"
+    delegate_to: localhost
+
+
